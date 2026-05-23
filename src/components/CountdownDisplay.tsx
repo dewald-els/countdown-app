@@ -5,15 +5,79 @@ import { toast } from 'sonner';
 import type { Countdown } from '@/types/countdown';
 
 interface CountdownDisplayProps {
-  countdown: Countdown;
+  countdown: Countdown & { emoji?: string };
   onNotified: () => void;
+}
+
+interface ProgressRingProps {
+  seconds: number; // 0 to 59
+  size?: number;
+  strokeWidth?: number;
+  children: React.ReactNode;
+}
+
+function ProgressRing({ seconds, size = 320, strokeWidth = 12, children }: ProgressRingProps) {
+  const dotSize = 24;
+  const padding = dotSize / 2 + 2; // Extra padding for the dot
+  const svgSize = size + padding * 2;
+  const radius = (size - strokeWidth) / 2;
+  const center = svgSize / 2;
+  
+  // Calculate rotation angle (0 seconds = top, moves counter-clockwise)
+  const rotation = -(seconds / 60) * 360;
+
+  // Pick emoji based on position (quadrant)
+  // 12 o'clock (0-14s) = 😁, 9 o'clock (15-29s) = 😄, 6 o'clock (30-44s) = 😊, 3 o'clock (45-59s) = 🙂
+  const getEmoji = () => {
+    if (seconds < 15) return '😁';
+    if (seconds < 30) return '😄';
+    if (seconds < 45) return '😊';
+    return '🙂';
+  };
+
+  return (
+    <div className="relative" style={{ width: svgSize, height: svgSize }}>
+      <svg
+        className="absolute top-0 left-0"
+        width={svgSize}
+        height={svgSize}
+      >
+        {/* Background circle track */}
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-border/50"
+        />
+      </svg>
+      {/* Rotating emoji container */}
+      <div 
+        className="absolute inset-0 transition-transform duration-1000 ease-linear"
+        style={{ transform: `rotate(${rotation}deg)` }}
+      >
+        <div 
+          className="absolute left-1/2 -translate-x-1/2 text-2xl transition-transform duration-1000 ease-linear"
+          style={{ top: padding - dotSize / 2, transform: `translateX(-50%) rotate(${-rotation}deg)` }}
+        >
+          {getEmoji()}
+        </div>
+      </div>
+      {/* Content inside the ring */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 function fireConfetti() {
   const duration = 5000;
   const end = Date.now() + duration;
 
-  const colors = ['#f472b6', '#ec4899', '#db2777', '#fda4af', '#fb7185'];
+  const colors = ['#93c5fd', '#60a5fa', '#3b82f6', '#a5b4fc', '#818cf8'];
 
   (function frame() {
     confetti({
@@ -83,104 +147,106 @@ export function CountdownDisplay({ countdown, onNotified }: CountdownDisplayProp
 
   if (isExpired) {
     return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <div className="text-6xl md:text-8xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent mb-4 animate-pulse">
-          It's Time!
-        </div>
-        <p className="text-xl text-muted-foreground">{countdown.name} has arrived</p>
+      <div className="flex flex-col items-center justify-center py-8">
+        <ProgressRing seconds={0}>
+          <div className="flex flex-col items-center">
+            <div className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent animate-pulse">
+              It's Time!
+            </div>
+          </div>
+        </ProgressRing>
+        <p className="text-lg text-muted-foreground mt-4">{countdown.name} has arrived</p>
       </div>
     );
   }
 
   if (isLessThanOneDay) {
-    // Hours as the main focus
     return (
-      <div className="flex flex-col items-center justify-center py-8 md:py-16">
-        {/* Hours - Main */}
-        <div className="flex items-baseline gap-2 mb-6">
-          <span className="text-[8rem] md:text-[12rem] font-extrabold leading-none tracking-tight text-foreground tabular-nums">
-            {String(timeRemaining.hours).padStart(2, '0')}
-          </span>
-          <span className="text-2xl md:text-4xl font-bold text-muted-foreground uppercase tracking-widest">
-            hrs
-          </span>
-        </div>
-        
-        {/* Minutes and Seconds */}
-        <div className="flex items-center gap-8 md:gap-12">
+      <div className="flex flex-col items-center">
+        <ProgressRing seconds={timeRemaining.seconds}>
           <div className="flex flex-col items-center">
-            <span className="text-5xl md:text-7xl font-bold tabular-nums text-foreground/80">
-              {String(timeRemaining.minutes).padStart(2, '0')}
-            </span>
-            <span className="text-sm md:text-base font-semibold text-muted-foreground uppercase tracking-widest mt-1">
-              min
-            </span>
+            {/* Emoji Icon */}
+            {countdown.emoji && (
+              <span className="text-4xl mb-2">{countdown.emoji}</span>
+            )}
+            
+            {/* Hours display */}
+            <div className="text-center">
+              <span className="text-6xl font-bold text-foreground tabular-nums">
+                {String(timeRemaining.hours).padStart(2, '0')}
+              </span>
+              <span className="text-xl font-medium text-muted-foreground ml-1">
+                hr
+              </span>
+            </div>
+            
+            {/* Minutes and seconds */}
+            <div className="flex items-center gap-3 text-muted-foreground mt-2">
+              <div className="text-center">
+                <span className="text-2xl font-semibold tabular-nums">
+                  {String(timeRemaining.minutes).padStart(2, '0')}
+                </span>
+                <span className="text-xs ml-1">min</span>
+              </div>
+              <span className="text-muted-foreground/40">:</span>
+              <div className="text-center">
+                <span className="text-2xl font-semibold tabular-nums opacity-60">
+                  {String(timeRemaining.seconds).padStart(2, '0')}
+                </span>
+                <span className="text-xs ml-1">sec</span>
+              </div>
+            </div>
           </div>
-          <div className="w-px h-16 bg-border" />
-          <div className="flex flex-col items-center">
-            <span className="text-5xl md:text-7xl font-bold tabular-nums text-foreground/60">
-              {String(timeRemaining.seconds).padStart(2, '0')}
-            </span>
-            <span className="text-sm md:text-base font-semibold text-muted-foreground uppercase tracking-widest mt-1">
-              sec
-            </span>
-          </div>
-        </div>
+        </ProgressRing>
       </div>
     );
   }
 
-  // Days as the main focus
-  // Calculate sleeps remaining (total hours / 6 hours per sleep cycle, rounded up)
-  const totalHours = timeRemaining.days * 24 + timeRemaining.hours;
-  const sleepsRemaining = Math.ceil(totalHours / 6);
-
+  // Days as main focus - inspired by "days til" design
   return (
-    <div className="flex flex-col items-center justify-center py-8 md:py-16">
-      {/* Days - Main */}
-      <div className="flex items-baseline gap-2 mb-6">
-        <span className="text-[8rem] md:text-[12rem] font-extrabold leading-none tracking-tight text-foreground tabular-nums">
-          {timeRemaining.days}
-        </span>
-        <span className="text-2xl md:text-4xl font-bold text-muted-foreground uppercase tracking-widest">
-          {timeRemaining.days === 1 ? 'day' : 'days'}
-        </span>
-      </div>
-      
-      {/* Hours and Minutes */}
-      <div className="flex items-center gap-8 md:gap-12">
+    <div className="flex flex-col items-center">
+      <ProgressRing seconds={timeRemaining.seconds}>
         <div className="flex flex-col items-center">
-          <span className="text-5xl md:text-7xl font-bold tabular-nums text-foreground/80">
-            {String(timeRemaining.hours).padStart(2, '0')}
-          </span>
-          <span className="text-sm md:text-base font-semibold text-muted-foreground uppercase tracking-widest mt-1">
-            hrs
-          </span>
+          {/* Emoji Icon */}
+          {countdown.emoji && (
+            <span className="text-4xl mb-2">{countdown.emoji}</span>
+          )}
+          
+          {/* Days - Large and prominent */}
+          <div className="text-center">
+            <span className="text-8xl font-bold text-foreground tabular-nums leading-none">
+              {timeRemaining.days}
+            </span>
+          </div>
+          <p className="text-xl font-medium text-muted-foreground">
+            {timeRemaining.days === 1 ? 'day' : 'days'}
+          </p>
+          
+          {/* Hours, Minutes - Compact row */}
+          <div className="flex items-center justify-center gap-3 text-muted-foreground mt-2">
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-lg font-semibold tabular-nums">
+                {String(timeRemaining.hours).padStart(2, '0')}
+              </span>
+              <span className="text-xs">hr</span>
+            </div>
+            <span className="text-muted-foreground/40">:</span>
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-lg font-semibold tabular-nums">
+                {String(timeRemaining.minutes).padStart(2, '0')}
+              </span>
+              <span className="text-xs">min</span>
+            </div>
+            <span className="text-muted-foreground/40">:</span>
+            <div className="flex items-baseline gap-0.5 opacity-60">
+              <span className="text-lg font-semibold tabular-nums">
+                {String(timeRemaining.seconds).padStart(2, '0')}
+              </span>
+              <span className="text-xs">sec</span>
+            </div>
+          </div>
         </div>
-        <div className="w-px h-16 bg-border" />
-        <div className="flex flex-col items-center">
-          <span className="text-5xl md:text-7xl font-bold tabular-nums text-foreground/60">
-            {String(timeRemaining.minutes).padStart(2, '0')}
-          </span>
-          <span className="text-sm md:text-base font-semibold text-muted-foreground uppercase tracking-widest mt-1">
-            min
-          </span>
-        </div>
-      </div>
-
-      {/* Seconds - subtle */}
-      <div className="mt-6 text-2xl md:text-3xl font-semibold tabular-nums text-muted-foreground/60">
-        {String(timeRemaining.seconds).padStart(2, '0')}
-        <span className="text-sm ml-1 uppercase tracking-widest">sec</span>
-      </div>
-
-      {/* Sleeps remaining */}
-      <div className="mt-12 px-6 py-4 rounded-2xl bg-card/50 border border-border/50">
-        <p className="text-lg md:text-xl font-semibold text-muted-foreground">
-          Only <span className="text-2xl md:text-3xl font-extrabold text-primary">{sleepsRemaining}</span> {sleepsRemaining === 1 ? 'sleep' : 'sleeps'} to go!
-        </p>
-        <p className="text-sm text-muted-foreground/60 mt-1">based on 6 hours of sleep</p>
-      </div>
+      </ProgressRing>
     </div>
   );
 }

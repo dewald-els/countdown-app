@@ -4,6 +4,7 @@ export interface Countdown {
   targetDate: string;
   createdAt: string;
   notified?: boolean;
+  emoji?: string;
 }
 
 export interface TimeRemaining {
