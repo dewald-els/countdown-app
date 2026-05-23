@@ -3,7 +3,13 @@ import type { TimeRemaining } from '@/types/countdown';
 
 export function useTimeRemaining(targetDate: string): TimeRemaining {
   const calculateTime = (): TimeRemaining => {
-    const total = new Date(targetDate).getTime() - Date.now();
+    const target = new Date(targetDate).getTime();
+    
+    if (isNaN(target)) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };
+    }
+    
+    const total = target - Date.now();
     
     if (total <= 0) {
       return { days: 0, hours: 0, minutes: 0, seconds: 0, total: 0 };

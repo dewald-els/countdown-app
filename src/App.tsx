@@ -1,57 +1,68 @@
 import { useEffect } from 'react';
 import { Toaster } from '@/components/ui/sonner';
+import { Button } from '@/components/ui/button';
 import { CountdownForm } from '@/components/CountdownForm';
-import { CountdownCard } from '@/components/CountdownCard';
-import { EmptyState } from '@/components/EmptyState';
-import { useCountdowns } from '@/hooks/useCountdowns';
+import { CountdownDisplay } from '@/components/CountdownDisplay';
+import { useCountdown } from '@/hooks/useCountdown';
+import { X } from 'lucide-react';
 
 function App() {
-  const { countdowns, addCountdown, removeCountdown, markNotified } = useCountdowns();
+  const { countdown, setCountdown, clearCountdown, markNotified } = useCountdown();
 
-  // Request notification permission on mount
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
   }, []);
 
-  // Sort countdowns: active first (by target date), then expired
-  const sortedCountdowns = [...countdowns].sort((a, b) => {
-    const aExpired = new Date(a.targetDate).getTime() <= Date.now();
-    const bExpired = new Date(b.targetDate).getTime() <= Date.now();
-    
-    if (aExpired && !bExpired) return 1;
-    if (!aExpired && bExpired) return -1;
-    
-    return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
-  });
-
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto px-4 py-8">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-            Countdown
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Track your important events
-          </p>
-        </header>
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        {countdown ? (
+          <div className="w-full max-w-4xl text-center">
+            {/* Event Name */}
+            <h1 className="text-2xl md:text-4xl font-medium text-muted-foreground mb-2">
+              {countdown.name}
+            </h1>
+            
+            {/* Target Date */}
+            <p className="text-sm md:text-base text-muted-foreground/60 mb-8">
+              {new Date(countdown.targetDate).toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </p>
 
-        <CountdownForm onAdd={addCountdown} />
+            {/* Countdown Display */}
+            <CountdownDisplay
+              countdown={countdown}
+              onNotified={markNotified}
+            />
 
-        {countdowns.length === 0 ? (
-          <EmptyState />
+            {/* Reset Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearCountdown}
+              className="mt-12 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
+          </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {sortedCountdowns.map((countdown) => (
-              <CountdownCard
-                key={countdown.id}
-                countdown={countdown}
-                onDelete={removeCountdown}
-                onNotified={markNotified}
-              />
-            ))}
+          <div className="w-full max-w-md text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+              Countdown
+            </h1>
+            <p className="text-muted-foreground mb-12">
+              Set a date and watch the time tick away
+            </p>
+            <CountdownForm onSubmit={setCountdown} />
           </div>
         )}
       </div>
