@@ -17,8 +17,8 @@ export default defineConfig({
         name: 'Countdown',
         short_name: 'Countdown',
         description: 'Track your important events with a beautiful countdown timer',
-        theme_color: '#fce7f3',
-        background_color: '#fce7f3',
+        theme_color: '#dbeafe',
+        background_color: '#dbeafe',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/countdown-app/',
@@ -44,6 +44,11 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Skip waiting and claim clients immediately
+        skipWaiting: true,
+        clientsClaim: true,
+        // Clean up old caches
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
