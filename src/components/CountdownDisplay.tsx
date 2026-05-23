@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { useTimeRemaining } from '@/hooks/useTimeRemaining';
 import { toast } from 'sonner';
@@ -23,8 +23,26 @@ function ProgressRing({ seconds, size = 320, strokeWidth = 12, children }: Progr
   const radius = (size - strokeWidth) / 2;
   const center = svgSize / 2;
   
-  // Calculate rotation angle (0 seconds = top, moves counter-clockwise)
-  const rotation = -(seconds / 60) * 360;
+  // Track continuous rotation to avoid snapping back
+  const [totalRotation, setTotalRotation] = useState(() => -(seconds / 60) * 360);
+  const prevSecondsRef = useRef(seconds);
+  
+  useEffect(() => {
+    const prevSeconds = prevSecondsRef.current;
+    let delta = prevSeconds - seconds; // How much we moved (positive = forward in time)
+    
+    // Handle wrap-around from 59 to 0 (normal countdown tick)
+    if (delta < -30) {
+      // Went from low number to high (e.g., 0 to 59) - unlikely in countdown
+      delta = delta + 60;
+    } else if (delta > 30) {
+      // Went from high to low (e.g., 59 to 0) - normal countdown tick
+      delta = delta - 60;
+    }
+    
+    setTotalRotation(prev => prev + (delta / 60) * 360);
+    prevSecondsRef.current = seconds;
+  }, [seconds]);
 
   // Pick emoji based on position (quadrant)
   // 12 o'clock (0-14s) = 😁, 9 o'clock (15-29s) = 😄, 6 o'clock (30-44s) = 😊, 3 o'clock (45-59s) = 🙂
@@ -56,11 +74,11 @@ function ProgressRing({ seconds, size = 320, strokeWidth = 12, children }: Progr
       {/* Rotating emoji container */}
       <div 
         className="absolute inset-0 transition-transform duration-1000 ease-linear"
-        style={{ transform: `rotate(${rotation}deg)` }}
+        style={{ transform: `rotate(${totalRotation}deg)` }}
       >
         <div 
           className="absolute left-1/2 -translate-x-1/2 text-2xl transition-transform duration-1000 ease-linear"
-          style={{ top: padding - dotSize / 2, transform: `translateX(-50%) rotate(${-rotation}deg)` }}
+          style={{ top: padding - dotSize / 2, transform: `translateX(-50%) rotate(${-totalRotation}deg)` }}
         >
           {getEmoji()}
         </div>
