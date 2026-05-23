@@ -1,73 +1,75 @@
-# React + TypeScript + Vite
+# Countdown App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A beautiful countdown timer PWA to track important events. Built with React, TypeScript, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Clean, mobile-first design with soft pastel blue theme
+- Animated circular progress indicator with emoji that changes expression
+- Playful background pattern with hearts, shapes, and geometric elements
+- Real-time countdown showing days, hours, minutes, and seconds
+- Confetti celebration when the countdown reaches zero
+- PWA support - install on iOS/Android home screen
+- Auto-updates when new versions are deployed
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS v4
+- shadcn/ui components
+- vite-plugin-pwa
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Install dependencies
+npm install
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# Run development server
+npm run dev
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Build for production
+npm run build
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Preview production build
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## PWA Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### iOS
+1. Open the app in Safari
+2. Tap the Share button
+3. Select "Add to Home Screen"
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Android
+1. Open the app in Chrome
+2. Tap the menu (three dots)
+3. Select "Add to Home Screen"
+
+## Configuration
+
+Edit the countdown event in `src/App.tsx`:
+
+```tsx
+const COUNTDOWN_EVENT = {
+  id: 'main',
+  name: 'The Big Day',
+  targetDate: '2026-08-06T00:00:00',
+  createdAt: '2025-05-23T00:00:00',
+  notified: false,
+  emoji: '✈️',
+};
 ```
+
+## Deployment
+
+The app is configured to deploy to GitHub Pages at `/countdown-app/`. Run:
+
+```bash
+npm run build
+```
+
+Then deploy the `dist` folder to your hosting provider.
